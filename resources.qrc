@@ -1,0 +1,15 @@
+<RCC>
+    <qresource prefix="/">
+        <file>icons/serial.svg</file>
+        <file>icons/tcp_client.svg</file>
+        <file>icons/tcp_server.svg</file>
+        <file>icons/udp.svg</file>
+        <file>icons/connect.svg</file>
+        <file>icons/disconnect.svg</file>
+        <file>icons/send.svg</file>
+        <file>icons/clear.svg</file>
+        <file>icons/save.svg</file>
+        <file>icons/font.svg</file>
+        <file>icons/scan.svg</file>
+    </qresource>
+</RCC>
