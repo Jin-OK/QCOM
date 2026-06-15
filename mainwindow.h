@@ -29,8 +29,7 @@ private slots:
     void on_btnClearSend_clicked();
     
     void on_rbSerial_toggled(bool checked);
-    void on_rbTcpClient_toggled(bool checked);
-    void on_rbTcpServer_toggled(bool checked);
+    void on_rbTcp_toggled(bool checked);
     void on_rbUdp_toggled(bool checked);
     
     void on_btnConnect_clicked();
@@ -62,6 +61,8 @@ private slots:
 private:
     Ui::MainWindow *ui;
     
+    enum class TcpMode { Client, Server };
+    
     QSerialPort *m_serialPort;
     QTcpSocket *m_tcpClient;
     QTcpServer *m_tcpServer;
@@ -70,6 +71,7 @@ private:
     
     QTimer *m_autoSendTimer;
     
+    TcpMode m_tcpMode;
     bool m_isSerialOpen;
     bool m_isTcpClientConnected;
     bool m_isTcpServerListening;
@@ -84,11 +86,8 @@ private:
     void openSerialPort();
     void closeSerialPort();
     
-    void connectTcpClient();
-    void disconnectTcpClient();
-    
-    void startTcpServer();
-    void stopTcpServer();
+    void connectTcp();
+    void disconnectTcp();
     
     void bindUdp();
     void unbindUdp();

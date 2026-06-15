@@ -21,6 +21,7 @@ MainWindow::MainWindow(QWidget *parent)
     , m_tcpServerClient(nullptr)
     , m_udpSocket(new QUdpSocket(this))
     , m_autoSendTimer(new QTimer(this))
+    , m_tcpMode(TcpMode::Client)
     , m_isSerialOpen(false)
     , m_isTcpClientConnected(false)
     , m_isTcpServerListening(false)
@@ -37,8 +38,8 @@ MainWindow::~MainWindow()
 {
     saveSettings();
     if (m_isSerialOpen) closeSerialPort();
-    if (m_isTcpClientConnected) disconnectTcpClient();
-    if (m_isTcpServerListening) stopTcpServer();
+    if (m_isTcpClientConnected) disconnectTcp();
+    if (m_isTcpServerListening) disconnectTcp();
     if (m_isUdpBound) unbindUdp();
     delete ui;
 }
@@ -67,8 +68,7 @@ void MainWindow::initUI()
     this->setStyleSheet(styleSheet);
     
     ui->rbSerial->setIcon(QIcon(":/icons/serial.svg"));
-    ui->rbTcpClient->setIcon(QIcon(":/icons/tcp_client.svg"));
-    ui->rbTcpServer->setIcon(QIcon(":/icons/tcp_server.svg"));
+    ui->rbTcp->setIcon(QIcon(":/icons/tcp_client.svg"));
     ui->rbUdp->setIcon(QIcon(":/icons/udp.svg"));
     
     ui->btnScanSerial->setIcon(QIcon(":/icons/scan.svg"));
@@ -105,6 +105,16 @@ void MainWindow::initUI()
     ui->teSend->setFont(monoFont);
     
     connect(m_autoSendTimer, &QTimer::timeout, this, &MainWindow::onAutoSend);
+    
+    connect(ui->cbTcpMode, QOverload<int>::of(&QComboBox::currentIndexChanged), this, [this](int index) {
+        m_tcpMode = (index == 0) ? TcpMode::Client : TcpMode::Server;
+        if (m_tcpMode == TcpMode::Client) {
+            ui->label_7->setText(tr("Server IP:"));
+        } else {
+            ui->label_7->setText(tr("Listen Port:"));
+            ui->leTcpIP->setEnabled(false);
+        }
+    });
 }
 
 void MainWindow::initConnections()
@@ -140,10 +150,9 @@ void MainWindow::loadSettings()
     ui->cbParity->setCurrentIndex(settings.value("serial/parity", 0).toInt());
     ui->cbFlowControl->setCurrentIndex(settings.value("serial/flowControl", 0).toInt());
     
-    ui->leTcpClientIP->setText(settings.value("tcpClient/ip", "127.0.0.1").toString());
-    ui->leTcpClientPort->setText(settings.value("tcpClient/port", "8080").toString());
-    
-    ui->leTcpServerPort->setText(settings.value("tcpServer/port", "8080").toString());
+    ui->cbTcpMode->setCurrentIndex(settings.value("tcp/mode", 0).toInt());
+    ui->leTcpIP->setText(settings.value("tcp/ip", "127.0.0.1").toString());
+    ui->leTcpPort->setText(settings.value("tcp/port", "8080").toString());
     
     ui->leUdpLocalIP->setText(settings.value("udp/localIP", "0.0.0.0").toString());
     ui->leUdpLocalPort->setText(settings.value("udp/localPort", "8080").toString());
@@ -153,6 +162,7 @@ void MainWindow::loadSettings()
     ui->chkTimestamp->setChecked(settings.value("display/timestamp", true).toBool());
     ui->chkHexRecv->setChecked(settings.value("display/hexRecv", false).toBool());
     ui->chkHexSend->setChecked(settings.value("display/hexSend", false).toBool());
+    ui->chkAppendNewline->setChecked(settings.value("display/appendNewline", true).toBool());
 }
 
 void MainWindow::saveSettings()
@@ -170,10 +180,9 @@ void MainWindow::saveSettings()
     settings.setValue("serial/parity", ui->cbParity->currentIndex());
     settings.setValue("serial/flowControl", ui->cbFlowControl->currentIndex());
     
-    settings.setValue("tcpClient/ip", ui->leTcpClientIP->text());
-    settings.setValue("tcpClient/port", ui->leTcpClientPort->text());
-    
-    settings.setValue("tcpServer/port", ui->leTcpServerPort->text());
+    settings.setValue("tcp/mode", ui->cbTcpMode->currentIndex());
+    settings.setValue("tcp/ip", ui->leTcpIP->text());
+    settings.setValue("tcp/port", ui->leTcpPort->text());
     
     settings.setValue("udp/localIP", ui->leUdpLocalIP->text());
     settings.setValue("udp/localPort", ui->leUdpLocalPort->text());
@@ -183,6 +192,7 @@ void MainWindow::saveSettings()
     settings.setValue("display/timestamp", ui->chkTimestamp->isChecked());
     settings.setValue("display/hexRecv", ui->chkHexRecv->isChecked());
     settings.setValue("display/hexSend", ui->chkHexSend->isChecked());
+    settings.setValue("display/appendNewline", ui->chkAppendNewline->isChecked());
 }
 
 void MainWindow::on_btnScanSerial_clicked()
@@ -278,6 +288,9 @@ void MainWindow::on_btnSend_clicked()
         data = hexStringToByteArray(text);
     } else {
         data = text.toUtf8();
+        if (ui->chkAppendNewline->isChecked()) {
+            data.append("\r\n");
+        }
     }
     
     sendData(data);
@@ -325,24 +338,17 @@ void MainWindow::on_rbSerial_toggled(bool checked)
     }
 }
 
-void MainWindow::on_rbTcpClient_toggled(bool checked)
+void MainWindow::on_rbTcp_toggled(bool checked)
 {
     if (checked) {
         ui->stackedWidget->setCurrentIndex(1);
     }
 }
 
-void MainWindow::on_rbTcpServer_toggled(bool checked)
-{
-    if (checked) {
-        ui->stackedWidget->setCurrentIndex(2);
-    }
-}
-
 void MainWindow::on_rbUdp_toggled(bool checked)
 {
     if (checked) {
-        ui->stackedWidget->setCurrentIndex(3);
+        ui->stackedWidget->setCurrentIndex(2);
     }
 }
 
@@ -354,17 +360,19 @@ void MainWindow::on_btnConnect_clicked()
         } else {
             openSerialPort();
         }
-    } else if (ui->rbTcpClient->isChecked()) {
-        if (m_isTcpClientConnected) {
-            disconnectTcpClient();
+    } else if (ui->rbTcp->isChecked()) {
+        if (m_tcpMode == TcpMode::Client) {
+            if (m_isTcpClientConnected) {
+                disconnectTcp();
+            } else {
+                connectTcp();
+            }
         } else {
-            connectTcpClient();
-        }
-    } else if (ui->rbTcpServer->isChecked()) {
-        if (m_isTcpServerListening) {
-            stopTcpServer();
-        } else {
-            startTcpServer();
+            if (m_isTcpServerListening) {
+                disconnectTcp();
+            } else {
+                connectTcp();
+            }
         }
     } else if (ui->rbUdp->isChecked()) {
         if (m_isUdpBound) {
@@ -375,18 +383,46 @@ void MainWindow::on_btnConnect_clicked()
     }
 }
 
-void MainWindow::connectTcpClient()
+void MainWindow::connectTcp()
 {
-    QString ip = ui->leTcpClientIP->text();
-    quint16 port = ui->leTcpClientPort->text().toUShort();
-    m_tcpClient->connectToHost(QHostAddress(ip), port);
-    ui->btnConnect->setEnabled(false);
-    statusBar()->showMessage(tr("Connecting to %1:%2...").arg(ip, QString::number(port)));
+    if (m_tcpMode == TcpMode::Client) {
+        QString ip = ui->leTcpIP->text();
+        quint16 port = ui->leTcpPort->text().toUShort();
+        m_tcpClient->connectToHost(QHostAddress(ip), port);
+        ui->btnConnect->setEnabled(false);
+        statusBar()->showMessage(tr("Connecting to %1:%2...").arg(ip, QString::number(port)));
+    } else {
+        quint16 port = ui->leTcpPort->text().toUShort();
+        if (m_tcpServer->listen(QHostAddress::Any, port)) {
+            m_isTcpServerListening = true;
+            ui->btnConnect->setText(tr("Stop"));
+            ui->btnConnect->setIcon(QIcon(":/icons/disconnect.svg"));
+            ui->leTcpPort->setEnabled(false);
+            ui->cbTcpMode->setEnabled(false);
+            statusBar()->showMessage(tr("TCP Server listening on port %1").arg(QString::number(port)));
+        } else {
+            QMessageBox::critical(this, tr("Error"), tr("Failed to start TCP server: %1").arg(m_tcpServer->errorString()));
+        }
+    }
 }
 
-void MainWindow::disconnectTcpClient()
+void MainWindow::disconnectTcp()
 {
-    m_tcpClient->disconnectFromHost();
+    if (m_tcpMode == TcpMode::Client) {
+        m_tcpClient->disconnectFromHost();
+    } else {
+        if (m_tcpServerClient) {
+            m_tcpServerClient->disconnectFromHost();
+            m_tcpServerClient = nullptr;
+        }
+        m_tcpServer->close();
+        m_isTcpServerListening = false;
+        ui->btnConnect->setText(tr("Start"));
+        ui->btnConnect->setIcon(QIcon(":/icons/connect.svg"));
+        ui->leTcpPort->setEnabled(true);
+        ui->cbTcpMode->setEnabled(true);
+        statusBar()->showMessage(tr("TCP Server stopped"));
+    }
 }
 
 void MainWindow::onTcpClientConnected()
@@ -395,8 +431,9 @@ void MainWindow::onTcpClientConnected()
     ui->btnConnect->setEnabled(true);
     ui->btnConnect->setText(tr("Disconnect"));
     ui->btnConnect->setIcon(QIcon(":/icons/disconnect.svg"));
-    ui->leTcpClientIP->setEnabled(false);
-    ui->leTcpClientPort->setEnabled(false);
+    ui->leTcpIP->setEnabled(false);
+    ui->leTcpPort->setEnabled(false);
+    ui->cbTcpMode->setEnabled(false);
     statusBar()->showMessage(tr("TCP Client connected"));
 }
 
@@ -406,8 +443,9 @@ void MainWindow::onTcpClientDisconnected()
     ui->btnConnect->setEnabled(true);
     ui->btnConnect->setText(tr("Connect"));
     ui->btnConnect->setIcon(QIcon(":/icons/connect.svg"));
-    ui->leTcpClientIP->setEnabled(true);
-    ui->leTcpClientPort->setEnabled(true);
+    ui->leTcpIP->setEnabled(true);
+    ui->leTcpPort->setEnabled(true);
+    ui->cbTcpMode->setEnabled(true);
     statusBar()->showMessage(tr("TCP Client disconnected"));
 }
 
@@ -422,34 +460,6 @@ void MainWindow::onTcpClientErrorOccurred(QAbstractSocket::SocketError socketErr
     Q_UNUSED(socketError)
     ui->btnConnect->setEnabled(true);
     statusBar()->showMessage(tr("TCP Client error: %1").arg(m_tcpClient->errorString()));
-}
-
-void MainWindow::startTcpServer()
-{
-    quint16 port = ui->leTcpServerPort->text().toUShort();
-    if (m_tcpServer->listen(QHostAddress::Any, port)) {
-        m_isTcpServerListening = true;
-        ui->btnConnect->setText(tr("Stop"));
-        ui->btnConnect->setIcon(QIcon(":/icons/disconnect.svg"));
-        ui->leTcpServerPort->setEnabled(false);
-        statusBar()->showMessage(tr("TCP Server listening on port %1").arg(QString::number(port)));
-    } else {
-        QMessageBox::critical(this, tr("Error"), tr("Failed to start TCP server: %1").arg(m_tcpServer->errorString()));
-    }
-}
-
-void MainWindow::stopTcpServer()
-{
-    if (m_tcpServerClient) {
-        m_tcpServerClient->disconnectFromHost();
-        m_tcpServerClient = nullptr;
-    }
-    m_tcpServer->close();
-    m_isTcpServerListening = false;
-    ui->btnConnect->setText(tr("Start"));
-    ui->btnConnect->setIcon(QIcon(":/icons/connect.svg"));
-    ui->leTcpServerPort->setEnabled(true);
-    statusBar()->showMessage(tr("TCP Server stopped"));
 }
 
 void MainWindow::onTcpServerNewConnection()

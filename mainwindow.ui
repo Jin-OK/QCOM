@@ -71,44 +71,37 @@
          <number>0</number>
         </property>
         <item>
-         <widget class="QGroupBox" name="gbConnectionType">
-          <property name="title">
-           <string>Connection Type</string>
-          </property>
-          <layout class="QHBoxLayout" name="horizontalLayout">
-           <item>
-            <widget class="QRadioButton" name="rbSerial">
-             <property name="text">
-              <string>Serial</string>
-             </property>
-             <property name="checked">
-              <bool>true</bool>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QRadioButton" name="rbTcpClient">
-             <property name="text">
-              <string>TCP Client</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QRadioButton" name="rbTcpServer">
-             <property name="text">
-              <string>TCP Server</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QRadioButton" name="rbUdp">
-             <property name="text">
-              <string>UDP</string>
-             </property>
-            </widget>
-           </item>
-          </layout>
-         </widget>
+<widget class="QGroupBox" name="gbConnectionType">
+           <property name="title">
+            <string>Connection Type</string>
+           </property>
+           <layout class="QHBoxLayout" name="horizontalLayout">
+            <item>
+             <widget class="QRadioButton" name="rbSerial">
+              <property name="text">
+               <string>Serial</string>
+              </property>
+              <property name="checked">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QRadioButton" name="rbTcp">
+              <property name="text">
+               <string>TCP</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QRadioButton" name="rbUdp">
+              <property name="text">
+               <string>UDP</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </widget>
         </item>
         <item>
          <widget class="QStackedWidget" name="stackedWidget">
@@ -206,74 +199,68 @@
             </item>
            </layout>
           </widget>
-          <widget class="QWidget" name="pageTcpClient">
-           <layout class="QVBoxLayout" name="verticalLayout_3">
-            <item>
-             <widget class="QGroupBox" name="gbTcpClientSettings">
-              <property name="title">
-               <string>TCP Client Settings</string>
-              </property>
-              <layout class="QGridLayout" name="gridLayout_2">
-               <item row="0" column="0">
-                <widget class="QLabel" name="label_7">
-                 <property name="text">
-                  <string>Server IP:</string>
-                 </property>
-                </widget>
-               </item>
-               <item row="0" column="1">
-                <widget class="QLineEdit" name="leTcpClientIP">
-                 <property name="text">
-                  <string>127.0.0.1</string>
-                 </property>
-                </widget>
-               </item>
-               <item row="1" column="0">
-                <widget class="QLabel" name="label_8">
-                 <property name="text">
-                  <string>Port:</string>
-                 </property>
-                </widget>
-               </item>
-               <item row="1" column="1">
-                <widget class="QLineEdit" name="leTcpClientPort">
-                 <property name="text">
-                  <string>8080</string>
-                 </property>
-                </widget>
-               </item>
-              </layout>
-             </widget>
-            </item>
-           </layout>
-          </widget>
-          <widget class="QWidget" name="pageTcpServer">
-           <layout class="QVBoxLayout" name="verticalLayout_4">
-            <item>
-             <widget class="QGroupBox" name="gbTcpServerSettings">
-              <property name="title">
-               <string>TCP Server Settings</string>
-              </property>
-              <layout class="QGridLayout" name="gridLayout_3">
-               <item row="0" column="0">
-                <widget class="QLabel" name="label_9">
-                 <property name="text">
-                  <string>Listen Port:</string>
-                 </property>
-                </widget>
-               </item>
-               <item row="0" column="1">
-                <widget class="QLineEdit" name="leTcpServerPort">
-                 <property name="text">
-                  <string>8080</string>
-                 </property>
-                </widget>
-               </item>
-              </layout>
-             </widget>
-            </item>
-           </layout>
-          </widget>
+<widget class="QWidget" name="pageTcp">
+            <layout class="QVBoxLayout" name="verticalLayout_3">
+             <item>
+              <widget class="QGroupBox" name="gbTcpSettings">
+               <property name="title">
+                <string>TCP Settings</string>
+               </property>
+               <layout class="QGridLayout" name="gridLayout_2">
+                <item row="0" column="0">
+                 <widget class="QLabel" name="label_7">
+                  <property name="text">
+                   <string>Mode:</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="0" column="1">
+                 <widget class="QComboBox" name="cbTcpMode">
+                  <item>
+                   <property name="text">
+                    <string>Client</string>
+                   </property>
+                  </item>
+                  <item>
+                   <property name="text">
+                    <string>Server</string>
+                   </property>
+                  </item>
+                 </widget>
+                </item>
+                <item row="1" column="0">
+                 <widget class="QLabel" name="label_8">
+                  <property name="text">
+                   <string>IP/Port:</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="1" column="1">
+                 <widget class="QLineEdit" name="leTcpIP">
+                  <property name="text">
+                   <string>127.0.0.1</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="2" column="0">
+                 <widget class="QLabel" name="label_9">
+                  <property name="text">
+                   <string>Port:</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="2" column="1">
+                 <widget class="QLineEdit" name="leTcpPort">
+                  <property name="text">
+                   <string>8080</string>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </widget>
+             </item>
+            </layout>
+           </widget>
           <widget class="QWidget" name="pageUdp">
            <layout class="QVBoxLayout" name="verticalLayout_5">
             <item>
@@ -434,13 +421,19 @@
              </property>
             </widget>
            </item>
-           <item>
-            <widget class="QPushButton" name="btnClearRecv">
-             <property name="text">
-              <string>Clear</string>
-             </property>
-            </widget>
-           </item>
+<item>
+             <widget class="QPushButton" name="btnClearRecv">
+              <property name="minimumSize">
+               <size>
+                <width>0</width>
+                <height>32</height>
+               </size>
+              </property>
+              <property name="text">
+               <string>Clear</string>
+              </property>
+             </widget>
+            </item>
           </layout>
          </widget>
         </item>
@@ -453,47 +446,73 @@
            <item>
             <widget class="QTextEdit" name="teSend"/>
            </item>
-           <item>
-            <layout class="QHBoxLayout" name="horizontalLayout_2">
-             <item>
-              <widget class="QCheckBox" name="chkAutoSend">
-               <property name="text">
-                <string>Auto Send</string>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QSpinBox" name="sbAutoSendInterval">
-               <property name="suffix">
-                <string> ms</string>
-               </property>
-               <property name="minimum">
-                <number>100</number>
-               </property>
-               <property name="maximum">
-                <number>60000</number>
-               </property>
-               <property name="value">
-                <number>1000</number>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QPushButton" name="btnClearSend">
-               <property name="text">
-                <string>Clear</string>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QPushButton" name="btnSend">
-               <property name="text">
-                <string>Send</string>
-               </property>
-              </widget>
-             </item>
-            </layout>
-           </item>
+<item>
+             <layout class="QHBoxLayout" name="horizontalLayout_2">
+              <item>
+               <widget class="QCheckBox" name="chkAppendNewline">
+                <property name="text">
+                 <string>Append \r\n</string>
+                </property>
+                <property name="checked">
+                 <bool>true</bool>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QCheckBox" name="chkAutoSend">
+                <property name="text">
+                 <string>Auto</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QSpinBox" name="sbAutoSendInterval">
+                <property name="suffix">
+                 <string> ms</string>
+                </property>
+                <property name="minimum">
+                 <number>100</number>
+                </property>
+                <property name="maximum">
+                 <number>60000</number>
+                </property>
+                <property name="value">
+                 <number>1000</number>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </item>
+            <item>
+             <layout class="QHBoxLayout" name="horizontalLayout_3">
+              <item>
+               <widget class="QPushButton" name="btnClearSend">
+                <property name="minimumSize">
+                 <size>
+                  <width>0</width>
+                  <height>36</height>
+                 </size>
+                </property>
+                <property name="text">
+                 <string>Clear</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QPushButton" name="btnSend">
+                <property name="minimumSize">
+                 <size>
+                  <width>0</width>
+                  <height>36</height>
+                 </size>
+                </property>
+                <property name="text">
+                 <string>Send</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </item>
           </layout>
          </widget>
         </item>
