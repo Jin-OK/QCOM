@@ -48,6 +48,7 @@ MainWindow::~MainWindow()
 void MainWindow::initUI()
 {
     setWindowTitle(tr("QCOM - Serial & Network Assistant"));
+    setWindowIcon(QIcon(":/icons/app_icon.svg"));
     
     QString styleSheet = QString(
         "QGroupBox {"
@@ -127,6 +128,12 @@ void MainWindow::initUI()
             ui->label_tcpIP->setVisible(true);
         }
     });
+    
+    ui->splitterRecvSend->setStretchFactor(0, 3);
+    ui->splitterRecvSend->setStretchFactor(1, 1);
+    QList<int> sizes;
+    sizes << 400 << 150;
+    ui->splitterRecvSend->setSizes(sizes);
 }
 
 void MainWindow::initConnections()
