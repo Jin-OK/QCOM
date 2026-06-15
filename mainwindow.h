@@ -57,6 +57,7 @@ private slots:
     void onUdpReadyRead();
     
     void onAutoSend();
+    void onFlushRecvBuffer();
 
 private:
     Ui::MainWindow *ui;
@@ -70,6 +71,7 @@ private:
     QUdpSocket *m_udpSocket;
     
     QTimer *m_autoSendTimer;
+    QTimer *m_flushTimer;
     
     QByteArray m_recvBuffer;
     

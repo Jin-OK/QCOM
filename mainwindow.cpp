@@ -21,6 +21,7 @@ MainWindow::MainWindow(QWidget *parent)
     , m_tcpServerClient(nullptr)
     , m_udpSocket(new QUdpSocket(this))
     , m_autoSendTimer(new QTimer(this))
+    , m_flushTimer(new QTimer(this))
     , m_tcpMode(TcpMode::Client)
     , m_isSerialOpen(false)
     , m_isTcpClientConnected(false)
@@ -107,6 +108,10 @@ void MainWindow::initUI()
     ui->teRecv->setAcceptRichText(true);
     
     connect(m_autoSendTimer, &QTimer::timeout, this, &MainWindow::onAutoSend);
+    
+    m_flushTimer->setSingleShot(true);
+    m_flushTimer->setInterval(50);
+    connect(m_flushTimer, &QTimer::timeout, this, &MainWindow::onFlushRecvBuffer);
     
     connect(ui->cbTcpMode, QOverload<int>::of(&QComboBox::currentIndexChanged), this, [this](int index) {
         m_tcpMode = (index == 0) ? TcpMode::Client : TcpMode::Server;
@@ -603,40 +608,35 @@ void MainWindow::onSerialDataReceived()
 
 void MainWindow::appendReceivedData(const QByteArray &data)
 {
+    m_recvBuffer.append(data);
+    m_flushTimer->start();
+}
+
+void MainWindow::onFlushRecvBuffer()
+{
+    if (m_recvBuffer.isEmpty()) return;
+    
     if (ui->chkHexRecv->isChecked()) {
-        QString displayData = byteArrayToHexString(data);
+        QString displayData = byteArrayToHexString(m_recvBuffer);
         QString formatted = formatDataWithTimestamp(displayData, false);
         ui->teRecv->append(formatted);
     } else {
-        m_recvBuffer.append(data);
+        QString displayData = QString::fromUtf8(m_recvBuffer);
         
-        int incompleteBytes = 0;
-        for (int i = m_recvBuffer.size() - 1; i >= 0 && i >= m_recvBuffer.size() - 4; --i) {
-            unsigned char c = static_cast<unsigned char>(m_recvBuffer[i]);
-            if ((c & 0x80) == 0) {
-                break;
+        QStringList lines = displayData.split('\n', Qt::KeepEmptyParts);
+        for (int i = 0; i < lines.size(); ++i) {
+            QString line = lines[i];
+            if (i < lines.size() - 1) {
+                line = line.trimmed();
             }
-            if ((c & 0xC0) == 0xC0) {
-                if ((c & 0xE0) == 0xC0) incompleteBytes = m_recvBuffer.size() - i - 1;
-                else if ((c & 0xF0) == 0xE0) incompleteBytes = m_recvBuffer.size() - i - 2;
-                else if ((c & 0xF8) == 0xF0) incompleteBytes = m_recvBuffer.size() - i - 3;
-                break;
-            }
-            incompleteBytes++;
-        }
-        
-        int displayLen = m_recvBuffer.size() - incompleteBytes;
-        if (displayLen > 0) {
-            QByteArray completeData = m_recvBuffer.left(displayLen);
-            m_recvBuffer = m_recvBuffer.mid(displayLen);
-            
-            QString displayData = QString::fromUtf8(completeData);
-            if (!displayData.isEmpty()) {
-                QString formatted = formatDataWithTimestamp(displayData, false);
+            if (!line.isEmpty()) {
+                QString formatted = formatDataWithTimestamp(line, false);
                 ui->teRecv->append(formatted);
             }
         }
     }
+    
+    m_recvBuffer.clear();
     
     QScrollBar *sb = ui->teRecv->verticalScrollBar();
     sb->setValue(sb->maximum());
