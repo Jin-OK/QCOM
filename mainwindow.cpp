@@ -132,7 +132,7 @@ void MainWindow::initUI()
     ui->splitterRecvSend->setStretchFactor(0, 3);
     ui->splitterRecvSend->setStretchFactor(1, 1);
     QList<int> sizes;
-    sizes << 400 << 150;
+    sizes << 350 << 200;
     ui->splitterRecvSend->setSizes(sizes);
 }
 
