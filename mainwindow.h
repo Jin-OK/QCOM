@@ -71,6 +71,8 @@ private:
     
     QTimer *m_autoSendTimer;
     
+    QByteArray m_recvBuffer;
+    
     TcpMode m_tcpMode;
     bool m_isSerialOpen;
     bool m_isTcpClientConnected;

@@ -273,6 +273,7 @@ void MainWindow::closeSerialPort()
 {
     m_serialPort->close();
     m_isSerialOpen = false;
+    m_recvBuffer.clear();
     ui->btnConnect->setText(tr("Open"));
     ui->btnConnect->setIcon(QIcon(":/icons/connect.svg"));
     ui->cbSerialPort->setEnabled(true);
@@ -331,6 +332,7 @@ void MainWindow::sendData(const QByteArray &data)
 void MainWindow::on_btnClearRecv_clicked()
 {
     ui->teRecv->clear();
+    m_recvBuffer.clear();
 }
 
 void MainWindow::on_btnClearSend_clicked()
@@ -601,15 +603,40 @@ void MainWindow::onSerialDataReceived()
 
 void MainWindow::appendReceivedData(const QByteArray &data)
 {
-    QString displayData;
     if (ui->chkHexRecv->isChecked()) {
-        displayData = byteArrayToHexString(data);
+        QString displayData = byteArrayToHexString(data);
+        QString formatted = formatDataWithTimestamp(displayData, false);
+        ui->teRecv->append(formatted);
     } else {
-        displayData = QString::fromUtf8(data);
+        m_recvBuffer.append(data);
+        
+        int incompleteBytes = 0;
+        for (int i = m_recvBuffer.size() - 1; i >= 0 && i >= m_recvBuffer.size() - 4; --i) {
+            unsigned char c = static_cast<unsigned char>(m_recvBuffer[i]);
+            if ((c & 0x80) == 0) {
+                break;
+            }
+            if ((c & 0xC0) == 0xC0) {
+                if ((c & 0xE0) == 0xC0) incompleteBytes = m_recvBuffer.size() - i - 1;
+                else if ((c & 0xF0) == 0xE0) incompleteBytes = m_recvBuffer.size() - i - 2;
+                else if ((c & 0xF8) == 0xF0) incompleteBytes = m_recvBuffer.size() - i - 3;
+                break;
+            }
+            incompleteBytes++;
+        }
+        
+        int displayLen = m_recvBuffer.size() - incompleteBytes;
+        if (displayLen > 0) {
+            QByteArray completeData = m_recvBuffer.left(displayLen);
+            m_recvBuffer = m_recvBuffer.mid(displayLen);
+            
+            QString displayData = QString::fromUtf8(completeData);
+            if (!displayData.isEmpty()) {
+                QString formatted = formatDataWithTimestamp(displayData, false);
+                ui->teRecv->append(formatted);
+            }
+        }
     }
-    
-    QString formatted = formatDataWithTimestamp(displayData, false);
-    ui->teRecv->append(formatted);
     
     QScrollBar *sb = ui->teRecv->verticalScrollBar();
     sb->setValue(sb->maximum());
