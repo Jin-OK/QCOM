@@ -104,15 +104,22 @@ void MainWindow::initUI()
     ui->teRecv->setFont(monoFont);
     ui->teSend->setFont(monoFont);
     
+    ui->teRecv->setAcceptRichText(true);
+    
     connect(m_autoSendTimer, &QTimer::timeout, this, &MainWindow::onAutoSend);
     
     connect(ui->cbTcpMode, QOverload<int>::of(&QComboBox::currentIndexChanged), this, [this](int index) {
         m_tcpMode = (index == 0) ? TcpMode::Client : TcpMode::Server;
         if (m_tcpMode == TcpMode::Client) {
-            ui->label_7->setText(tr("Server IP:"));
+            ui->label_tcpIP->setText(tr("Server IP:"));
+            ui->leTcpIP->setEnabled(true);
+            ui->leTcpIP->setVisible(true);
+            ui->label_tcpIP->setVisible(true);
         } else {
-            ui->label_7->setText(tr("Listen Port:"));
-            ui->leTcpIP->setEnabled(false);
+            ui->label_tcpIP->setText(tr("Listen IP:"));
+            ui->leTcpIP->setEnabled(true);
+            ui->leTcpIP->setVisible(true);
+            ui->label_tcpIP->setVisible(true);
         }
     });
 }
@@ -644,12 +651,15 @@ QString MainWindow::byteArrayToHexString(const QByteArray &byteArray)
 
 QString MainWindow::formatDataWithTimestamp(const QString &data, bool isSend)
 {
+    QString directionColor = isSend ? "#FFA500" : "#00AA00";
+    QString directionText = isSend ? tr("Send") : tr("Recv");
+    
     if (ui->chkTimestamp->isChecked()) {
         QString timestamp = QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss.zzz");
-        QString direction = isSend ? tr("Send") : tr("Recv");
-        return QString("[%1] [%2] %3").arg(timestamp, direction, data);
+        return QString("[%1] <span style='color:%2; font-weight:bold;'>[%3]</span> %4")
+               .arg(timestamp, directionColor, directionText, data);
     } else {
-        QString direction = isSend ? tr("[Send] ") : tr("[Recv] ");
-        return direction + data;
+        return QString("<span style='color:%1; font-weight:bold;'>[%2]</span> %3")
+               .arg(directionColor, directionText, data);
     }
 }
