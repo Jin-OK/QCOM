@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <rect width="256" height="256" rx="32" fill="#2C3E50"/>
+  <circle cx="80" cy="128" r="40" fill="#3498DB" stroke="#fff" stroke-width="4"/>
+  <circle cx="176" cy="128" r="40" fill="#E74C3C" stroke="#fff" stroke-width="4"/>
+  <path d="M120 128 L136 128" stroke="#fff" stroke-width="6" stroke-linecap="round"/>
+  <path d="M70 100 Q80 90 90 100" stroke="#fff" stroke-width="3" fill="none"/>
+  <path d="M70 156 Q80 166 90 156" stroke="#fff" stroke-width="3" fill="none"/>
+  <text x="80" y="135" font-family="Arial" font-size="24" font-weight="bold" fill="#fff" text-anchor="middle">S</text>
+  <text x="176" y="135" font-family="Arial" font-size="24" font-weight="bold" fill="#fff" text-anchor="middle">N</text>
+  <text x="128" y="220" font-family="Arial" font-size="32" font-weight="bold" fill="#ECF0F1" text-anchor="middle">QCOM</text>
+</svg>

@@ -3,10 +3,16 @@
 #include <QApplication>
 #include <QLocale>
 #include <QTranslator>
+#include <QIcon>
 
 int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
+    
+    a.setApplicationName("QCOM");
+    a.setApplicationVersion("1.0.0");
+    a.setOrganizationName("QCOM");
+    a.setWindowIcon(QIcon(":/icons/app_icon.svg"));
 
     QTranslator translator;
     const QStringList uiLanguages = QLocale::system().uiLanguages();
