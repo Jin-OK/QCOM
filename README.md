@@ -12,8 +12,8 @@
 |------|------|------|
 | Windows x64 | QCOM-windows-x64.zip | Windows 64位，解压后运行 QCOM.exe |
 | macOS ARM64 | QCOM-macos-arm64.dmg | M1/M2/M3芯片 Mac |
-| Linux x64 | QCOM-linux-x64.AppImage | Linux 64位，直接运行（包含Qt依赖） |
-| Linux ARM64 | QCOM-linux-arm64.tar.gz | 树莓派等ARM设备，需安装Qt6 |
+| Linux x64 | QCOM-linux-x64.tar.gz | Linux 64位，解压后运行 ./QCOM |
+| Linux ARM64 | QCOM-linux-arm64.tar.gz | 树莓派等ARM设备 |
 
 ### macOS 使用说明
 
