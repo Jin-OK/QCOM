@@ -5,6 +5,10 @@ on:
     tags:
       - 'v*'
   workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to build'
+        required: false
 
 jobs:
   build-windows:
@@ -19,26 +23,34 @@ jobs:
           host: 'windows'
           target: 'desktop'
           arch: 'mingw_64'
+          modules: 'qtserialport'
           
       - name: Configure
         run: cmake -B build -G "MinGW Makefiles" -DCMAKE_PREFIX_PATH="${{ env.Qt6_DIR }}"
         
       - name: Build
-        run: cmake --build build
+        run: cmake --build build --config Release
         
-      - name: Package
+      - name: Deploy
         run: |
           cd build
           windeployqt QCOM.exe
-          7z a QCOM-windows.zip QCOM.exe *.dll icons/
           
-      - name: Upload
+      - name: Package
+        run: |
+          mkdir package
+          cp build/QCOM.exe package/
+          cp build/*.dll package/ 2>$null || true
+          cd package
+          7z a QCOM-windows-x64.zip *
+          
+      - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: QCOM-windows
-          path: build/QCOM-windows.zip
+          name: QCOM-windows-x64
+          path: package/QCOM-windows-x64.zip
 
-  build-macos:
+  build-macos-arm64:
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
@@ -50,6 +62,39 @@ jobs:
           host: 'mac'
           target: 'desktop'
           arch: 'clang_64'
+          modules: 'qtserialport'
+          
+      - name: Configure
+        run: cmake -B build -DCMAKE_PREFIX_PATH="${{ env.Qt6_DIR }}" -DCMAKE_OSX_ARCHITECTURES="arm64"
+        
+      - name: Build
+        run: cmake --build build --config Release
+        
+      - name: Deploy
+        run: |
+          cd build
+          macdeployqt QCOM.app -dmg
+          mv QCOM.dmg QCOM-macos-arm64.dmg
+          
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: QCOM-macos-arm64
+          path: build/QCOM-macos-arm64.dmg
+
+  build-macos-x64:
+    runs-on: macos-13
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Install Qt
+        uses: jurplel/install-qt-action@v4
+        with:
+          version: '6.11.1'
+          host: 'mac'
+          target: 'desktop'
+          arch: 'clang_64'
+          modules: 'qtserialport'
           
       - name: Configure
         run: cmake -B build -DCMAKE_PREFIX_PATH="${{ env.Qt6_DIR }}"
@@ -57,18 +102,19 @@ jobs:
       - name: Build
         run: cmake --build build --config Release
         
-      - name: Package
+      - name: Deploy
         run: |
           cd build
           macdeployqt QCOM.app -dmg
+          mv QCOM.dmg QCOM-macos-x64.dmg
           
-      - name: Upload
+      - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: QCOM-macos
-          path: build/QCOM.dmg
+          name: QCOM-macos-x64
+          path: build/QCOM-macos-x64.dmg
 
-  build-linux:
+  build-linux-x64:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -80,39 +126,114 @@ jobs:
           host: 'linux'
           target: 'desktop'
           arch: 'gcc_64'
+          modules: 'qtserialport'
           
       - name: Install dependencies
-        run: sudo apt-get install -y libgl1-mesa-dev
-        
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libgl1-mesa-dev libxcb-cursor0 libxcb-icccm4 libxcb-image0 libxcb-keysyms1 libxcb-randr0 libxcb-render-util0 libxcb-shape0
+          
       - name: Configure
         run: cmake -B build -DCMAKE_PREFIX_PATH="${{ env.Qt6_DIR }}"
         
       - name: Build
-        run: cmake --build build
+        run: cmake --build build --config Release
         
       - name: Package
         run: |
           cd build
-          tar -czvf QCOM-linux.tar.gz QCOM
+          tar -czvf QCOM-linux-x64.tar.gz QCOM
           
-      - name: Upload
+      - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: QCOM-linux
-          path: build/QCOM-linux.tar.gz
+          name: QCOM-linux-x64
+          path: build/QCOM-linux-x64.tar.gz
+
+  build-linux-arm64:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+        
+      - name: Install Qt (Cross compile)
+        uses: jurplel/install-qt-action@v4
+        with:
+          version: '6.11.1'
+          host: 'linux'
+          target: 'desktop'
+          arch: 'gcc_64'
+          modules: 'qtserialport'
+          
+      - name: Install ARM64 cross-compile toolchain
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gcc-aarch64-linux-gnu g++-aarch64-linux-gnu
+          
+      - name: Configure for ARM64
+        run: |
+          cmake -B build \
+            -DCMAKE_PREFIX_PATH="${{ env.Qt6_DIR }}" \
+            -DCMAKE_C_COMPILER=aarch64-linux-gnu-gcc \
+            -DCMAKE_CXX_COMPILER=aarch64-linux-gnu-g++ \
+            -DCMAKE_SYSTEM_NAME=Linux \
+            -DCMAKE_SYSTEM_PROCESSOR=aarch64
+          
+      - name: Build
+        run: cmake --build build --config Release
+        
+      - name: Package
+        run: |
+          cd build
+          tar -czvf QCOM-linux-arm64.tar.gz QCOM
+          
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: QCOM-linux-arm64
+          path: build/QCOM-linux-arm64.tar.gz
 
   release:
-    needs: [build-windows, build-macos, build-linux]
+    needs: [build-windows, build-macos-arm64, build-macos-x64, build-linux-x64, build-linux-arm64]
     runs-on: ubuntu-latest
     if: startsWith(github.ref, 'refs/tags/')
     steps:
       - name: Download all artifacts
         uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+          
+      - name: Display structure
+        run: ls -R artifacts
         
       - name: Create Release
         uses: softprops/action-gh-release@v1
         with:
           files: |
-            QCOM-windows/QCOM-windows.zip
-            QCOM-macos/QCOM.dmg
-            QCOM-linux/QCOM-linux.tar.gz
+            artifacts/QCOM-windows-x64/QCOM-windows-x64.zip
+            artifacts/QCOM-macos-arm64/QCOM-macos-arm64.dmg
+            artifacts/QCOM-macos-x64/QCOM-macos-x64.dmg
+            artifacts/QCOM-linux-x64/QCOM-linux-x64.tar.gz
+            artifacts/QCOM-linux-arm64/QCOM-linux-arm64.tar.gz
+          body: |
+            ## QCOM v${{ github.ref_name }}
+            
+            ### 下载说明
+            
+            | 平台 | 文件 | 说明 |
+            |------|------|------|
+            | Windows x64 | QCOM-windows-x64.zip | Windows 64位 |
+            | macOS ARM64 | QCOM-macos-arm64.dmg | M1/M2/M3芯片 |
+            | macOS x64 | QCOM-macos-x64.dmg | Intel芯片Mac |
+            | Linux x64 | QCOM-linux-x64.tar.gz | Linux 64位 |
+            | Linux ARM64 | QCOM-linux-arm64.tar.gz | 树莓派等ARM设备 |
+            
+            ### 使用方法
+            
+            **Windows**: 解压后运行QCOM.exe
+            
+            **macOS**: 双击dmg安装
+            
+            **Linux**: 解压后运行 `./QCOM`
