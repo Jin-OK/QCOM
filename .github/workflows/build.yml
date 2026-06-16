@@ -1,0 +1,118 @@
+name: Build QCOM
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Install Qt
+        uses: jurplel/install-qt-action@v4
+        with:
+          version: '6.11.1'
+          host: 'windows'
+          target: 'desktop'
+          arch: 'mingw_64'
+          
+      - name: Configure
+        run: cmake -B build -G "MinGW Makefiles" -DCMAKE_PREFIX_PATH="${{ env.Qt6_DIR }}"
+        
+      - name: Build
+        run: cmake --build build
+        
+      - name: Package
+        run: |
+          cd build
+          windeployqt QCOM.exe
+          7z a QCOM-windows.zip QCOM.exe *.dll icons/
+          
+      - name: Upload
+        uses: actions/upload-artifact@v4
+        with:
+          name: QCOM-windows
+          path: build/QCOM-windows.zip
+
+  build-macos:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Install Qt
+        uses: jurplel/install-qt-action@v4
+        with:
+          version: '6.11.1'
+          host: 'mac'
+          target: 'desktop'
+          arch: 'clang_64'
+          
+      - name: Configure
+        run: cmake -B build -DCMAKE_PREFIX_PATH="${{ env.Qt6_DIR }}"
+        
+      - name: Build
+        run: cmake --build build --config Release
+        
+      - name: Package
+        run: |
+          cd build
+          macdeployqt QCOM.app -dmg
+          
+      - name: Upload
+        uses: actions/upload-artifact@v4
+        with:
+          name: QCOM-macos
+          path: build/QCOM.dmg
+
+  build-linux:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Install Qt
+        uses: jurplel/install-qt-action@v4
+        with:
+          version: '6.11.1'
+          host: 'linux'
+          target: 'desktop'
+          arch: 'gcc_64'
+          
+      - name: Install dependencies
+        run: sudo apt-get install -y libgl1-mesa-dev
+        
+      - name: Configure
+        run: cmake -B build -DCMAKE_PREFIX_PATH="${{ env.Qt6_DIR }}"
+        
+      - name: Build
+        run: cmake --build build
+        
+      - name: Package
+        run: |
+          cd build
+          tar -czvf QCOM-linux.tar.gz QCOM
+          
+      - name: Upload
+        uses: actions/upload-artifact@v4
+        with:
+          name: QCOM-linux
+          path: build/QCOM-linux.tar.gz
+
+  release:
+    needs: [build-windows, build-macos, build-linux]
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/')
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            QCOM-windows/QCOM-windows.zip
+            QCOM-macos/QCOM.dmg
+            QCOM-linux/QCOM-linux.tar.gz
