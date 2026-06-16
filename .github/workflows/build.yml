@@ -75,10 +75,8 @@ jobs:
       - name: Create DMG
         run: |
           cd build
-          mkdir -p dmg_temp
-          cp -r QCOM.app dmg_temp/
-          ln -sf /Applications dmg_temp/Applications
-          hdiutil create -volname "QCOM" -srcfolder dmg_temp -ov -format UDZO QCOM-macos-arm64.dmg
+          macdeployqt QCOM.app -dmg
+          mv QCOM.dmg QCOM-macos-arm64.dmg
           
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
