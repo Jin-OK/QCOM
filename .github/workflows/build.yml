@@ -19,25 +19,27 @@ jobs:
           version: '6.5.3'
           host: 'windows'
           target: 'desktop'
-          arch: 'win64_mingw'
+          arch: 'win64_msvc2019_64'
           modules: 'qtserialport'
           
       - name: Configure
-        run: cmake -B build -G "MinGW Makefiles" -DCMAKE_PREFIX_PATH="${{ env.Qt6_DIR }}"
+        run: cmake -B build -G "Visual Studio 17 2022" -A x64 -DCMAKE_PREFIX_PATH="${{ env.Qt6_DIR }}"
         
       - name: Build
         run: cmake --build build --config Release
         
       - name: Deploy
         run: |
-          cd build
-          windeployqt QCOM.exe
+          cd build/Release
+          windeployqt QCOM.exe --release
           
       - name: Package
         run: |
           mkdir package
-          cp build/QCOM.exe package/
-          cp build/*.dll package/ 2>$null || true
+          cp build/Release/QCOM.exe package/
+          cp build/Release/*.dll package/ 2>$null || true
+          cp build/Release/platforms/*.dll package/ 2>$null || true
+          cp build/Release/styles/*.dll package/ 2>$null || true
           cd package
           7z a QCOM-windows-x64.zip *
           
