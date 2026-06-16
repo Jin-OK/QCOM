@@ -5,8 +5,6 @@ on:
     branches: [ main, master ]
     tags:
       - 'v*'
-  pull_request:
-    branches: [ main, master ]
   workflow_dispatch:
 
 jobs:
@@ -18,11 +16,10 @@ jobs:
       - name: Install Qt
         uses: jurplel/install-qt-action@v4
         with:
-          version: '6.11.1'
+          version: '6.6.3'
           host: 'windows'
           target: 'desktop'
           arch: 'mingw_64'
-          modules: 'qtserialport'
           
       - name: Configure
         run: cmake -B build -G "MinGW Makefiles" -DCMAKE_PREFIX_PATH="${{ env.Qt6_DIR }}"
@@ -57,11 +54,10 @@ jobs:
       - name: Install Qt
         uses: jurplel/install-qt-action@v4
         with:
-          version: '6.11.1'
+          version: '6.6.3'
           host: 'mac'
           target: 'desktop'
           arch: 'clang_64'
-          modules: 'qtserialport'
           
       - name: Configure
         run: cmake -B build -DCMAKE_PREFIX_PATH="${{ env.Qt6_DIR }}" -DCMAKE_OSX_ARCHITECTURES="arm64"
@@ -89,11 +85,10 @@ jobs:
       - name: Install Qt
         uses: jurplel/install-qt-action@v4
         with:
-          version: '6.11.1'
+          version: '6.6.3'
           host: 'mac'
           target: 'desktop'
           arch: 'clang_64'
-          modules: 'qtserialport'
           
       - name: Configure
         run: cmake -B build -DCMAKE_PREFIX_PATH="${{ env.Qt6_DIR }}"
@@ -118,25 +113,16 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       
-      - name: Install Qt
-        uses: jurplel/install-qt-action@v4
-        with:
-          version: '6.8.1'
-          host: 'linux'
-          target: 'desktop'
-          arch: 'gcc_64'
-          modules: 'qtserialport'
-          
-      - name: Install dependencies
+      - name: Install Qt6
         run: |
           sudo apt-get update
-          sudo apt-get install -y libgl1-mesa-dev libxcb-cursor0 libxcb-icccm4 libxcb-image0 libxcb-keysyms1 libxcb-randr0 libxcb-render-util0 libxcb-shape0
+          sudo apt-get install -y qt6-base-dev qt6-base-dev-tools qt6-tools-dev qt6-tools-dev-tools qt6-serialport-dev cmake build-essential
           
       - name: Configure
-        run: cmake -B build -DCMAKE_PREFIX_PATH="${{ env.Qt6_DIR }}"
+        run: cmake -B build -DCMAKE_PREFIX_PATH=/usr/lib/qt6
         
       - name: Build
-        run: cmake --build build --config Release
+        run: cmake --build build
         
       - name: Package
         run: |
@@ -150,38 +136,20 @@ jobs:
           path: build/QCOM-linux-x64.tar.gz
 
   build-linux-arm64:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04-arm
     steps:
       - uses: actions/checkout@v4
       
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
-        
-      - name: Install Qt (Cross compile)
-        uses: jurplel/install-qt-action@v4
-        with:
-          version: '6.11.1'
-          host: 'linux'
-          target: 'desktop'
-          arch: 'gcc_64'
-          modules: 'qtserialport'
-          
-      - name: Install ARM64 cross-compile toolchain
+      - name: Install Qt6
         run: |
           sudo apt-get update
-          sudo apt-get install -y gcc-aarch64-linux-gnu g++-aarch64-linux-gnu
+          sudo apt-get install -y qt6-base-dev qt6-base-dev-tools qt6-tools-dev qt6-tools-dev-tools qt6-serialport-dev cmake build-essential
           
-      - name: Configure for ARM64
-        run: |
-          cmake -B build \
-            -DCMAKE_PREFIX_PATH="${{ env.Qt6_DIR }}" \
-            -DCMAKE_C_COMPILER=aarch64-linux-gnu-gcc \
-            -DCMAKE_CXX_COMPILER=aarch64-linux-gnu-g++ \
-            -DCMAKE_SYSTEM_NAME=Linux \
-            -DCMAKE_SYSTEM_PROCESSOR=aarch64
-          
+      - name: Configure
+        run: cmake -B build -DCMAKE_PREFIX_PATH=/usr/lib/qt6
+        
       - name: Build
-        run: cmake --build build --config Release
+        run: cmake --build build
         
       - name: Package
         run: |
@@ -204,9 +172,6 @@ jobs:
         with:
           path: artifacts
           
-      - name: Display structure
-        run: ls -R artifacts
-        
       - name: Create Release
         uses: softprops/action-gh-release@v1
         with:
