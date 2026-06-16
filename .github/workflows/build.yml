@@ -20,6 +20,7 @@ jobs:
           host: 'windows'
           target: 'desktop'
           arch: 'mingw_64'
+          modules: 'qtserialport'
           
       - name: Configure
         run: cmake -B build -G "MinGW Makefiles" -DCMAKE_PREFIX_PATH="${{ env.Qt6_DIR }}"
@@ -58,6 +59,7 @@ jobs:
           host: 'mac'
           target: 'desktop'
           arch: 'clang_64'
+          modules: 'qtserialport'
           
       - name: Configure
         run: cmake -B build -DCMAKE_PREFIX_PATH="${{ env.Qt6_DIR }}" -DCMAKE_OSX_ARCHITECTURES="arm64"
@@ -89,6 +91,7 @@ jobs:
           host: 'mac'
           target: 'desktop'
           arch: 'clang_64'
+          modules: 'qtserialport'
           
       - name: Configure
         run: cmake -B build -DCMAKE_PREFIX_PATH="${{ env.Qt6_DIR }}"
