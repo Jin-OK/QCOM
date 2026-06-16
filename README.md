@@ -2,6 +2,30 @@
 
 基于Qt6开发的跨平台串口与网络通信调试工具。
 
+## 下载预编译版本
+
+推荐使用预编译版本，无需自行编译：
+
+前往 [Releases](https://github.com/Jin-OK/QCOM/releases) 页面下载最新版本。
+
+| 平台 | 文件 | 说明 |
+|------|------|------|
+| Windows x64 | QCOM-windows-x64.zip | Windows 64位，解压后运行 QCOM.exe |
+| macOS ARM64 | QCOM-macos-arm64.dmg | M1/M2/M3芯片 Mac |
+| macOS x64 | QCOM-macos-x64.dmg | Intel芯片 Mac |
+| Linux x64 | QCOM-linux-x64.tar.gz | Linux 64位 |
+| Linux ARM64 | QCOM-linux-arm64.tar.gz | 树莓派等ARM设备 |
+
+### macOS 使用说明
+
+双击 dmg 文件安装。首次运行如提示"已损坏"或"无法验证开发者"，请在终端执行：
+
+```bash
+sudo xattr -cr /Applications/QCOM.app
+```
+
+然后即可正常打开应用。
+
 ## 功能特性
 
 - **串口通信**
@@ -22,6 +46,7 @@
   - UTF-8 中文字符支持
   - 发送/接收彩色标签（发送：黄色，接收：绿色）
   - 可调节字体设置
+  - 深色主题界面
 
 - **其他功能**
   - 定时自动发送
@@ -31,7 +56,9 @@
 
 ## 编译需求
 
-- Qt 6.x（推荐 Qt 6.11.1）
+如需自行编译，请满足以下条件：
+
+- Qt 6.x（推荐 Qt 6.5.3+）
 - CMake 3.16+
 - C++17 编译器
 
@@ -39,27 +66,11 @@
 
 | 平台 | 编译器 | Qt版本 |
 |------|--------|--------|
-| Windows | MinGW 13.1.0 或 MSVC 2022 | Qt 6.11.1 |
-| macOS | Clang（Xcode） | Qt 6.x |
-| Linux | GCC 9+ 或 Clang | Qt 6.x |
+| Windows | MSVC 2022 | Qt 6.5.3+ |
+| macOS | Clang（Xcode） | Qt 6.5.3+ |
+| Linux | GCC 9+ 或 Clang | Qt 6.4+ |
 
 ## 编译指南
-
-### Windows（MinGW）
-
-```bash
-# 设置Qt路径（根据你的安装路径调整）
-set PATH=D:\Qt\Tools\mingw1310_64\bin;D:\Qt\6.11.1\mingw_64\bin;%PATH%
-
-# 配置
-cmake -B build -G "MinGW Makefiles" -DCMAKE_PREFIX_PATH=D:/Qt/6.11.1/mingw_64
-
-# 编译
-cmake --build build
-
-# 运行
-build\QCOM.exe
-```
 
 ### Windows（MSVC）
 
@@ -67,13 +78,17 @@ build\QCOM.exe
 # 打开 "x64 Native Tools Command Prompt for VS 2022"
 
 # 配置
-cmake -B build -G "Visual Studio 17 2022" -A x64 -DCMAKE_PREFIX_PATH=C:/Qt/6.11.1/msvc2022_64
+cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH=C:/Qt/6.5.3/msvc2019_64
 
 # 编译
-cmake --build build --config Release
+cmake --build build
+
+# 部署依赖
+cd build
+windeployqt --release QCOM.exe
 
 # 运行
-build\Release\QCOM.exe
+QCOM.exe
 ```
 
 ### macOS
@@ -82,8 +97,7 @@ build\Release\QCOM.exe
 
 1. **下载安装Qt**
    - 从 [Qt官网](https://www.qt.io/download) 下载Qt安装包
-   - 安装Qt 6.x（推荐6.11.1或更高版本）
-   - 安装路径通常为：`/Users/你的用户名/Qt/6.x/macos` 或 `/opt/qt6`
+   - 安装Qt 6.x（推荐6.5.3或更高版本）
 
 2. **安装Xcode命令行工具**
    ```bash
@@ -93,19 +107,15 @@ build\Release\QCOM.exe
 3. **编译**
    ```bash
    # 设置Qt路径（根据实际安装路径调整）
-   export CMAKE_PREFIX_PATH=/Users/你的用户名/Qt/6.11.1/macos
-   # 或者使用brew安装的Qt
-   # export CMAKE_PREFIX_PATH=/opt/homebrew/opt/qt@6
+   export CMAKE_PREFIX_PATH=/Users/你的用户名/Qt/6.5.3/macos
 
    # 配置
-   cmake -B build -DCMAKE_PREFIX_PATH=$CMAKE_PREFIX_PATH
+   cmake -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH=$CMAKE_PREFIX_PATH
 
    # 编译
    cmake --build build
 
    # 运行
-   ./build/QCOM.app/Contents/MacOS/QCOM
-   # 或者直接打开app包
    open build/QCOM.app
    ```
 
@@ -115,28 +125,12 @@ build\Release\QCOM.exe
 # 安装Qt6
 brew install qt@6
 
-# 设置环境变量
-export CMAKE_PREFIX_PATH=/opt/homebrew/opt/qt@6
-
 # 配置和编译
-cmake -B build -DCMAKE_PREFIX_PATH=/opt/homebrew/opt/qt@6
+cmake -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH=/opt/homebrew/opt/qt@6
 cmake --build build
 
 # 运行
 open build/QCOM.app
-```
-
-#### 生成独立可执行的macOS应用包
-
-```bash
-# 编译Release版本
-cmake -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH=/path/to/qt
-cmake --build build --config Release
-
-# 使用macdeployqt打包依赖（Qt自带工具）
-/path/to/qt/bin/macdeployqt build/QCOM.app -dmg
-
-# 生成的QCOM.dmg可以直接分发给其他mac用户
 ```
 
 ### Linux（Ubuntu/Debian）
@@ -144,26 +138,12 @@ cmake --build build --config Release
 ```bash
 # 安装依赖
 sudo apt update
-sudo apt install cmake build-essential qt6-base-dev qt6-serialport-dev qt6-tools-dev
+sudo apt install cmake build-essential qt6-base-dev qt6-serialport-dev
 
 # 配置
-cmake -B build
+cmake -B build -DCMAKE_BUILD_TYPE=Release
 
 # 编译
-cmake --build build
-
-# 运行
-./build/QCOM
-```
-
-### Linux（Arch Linux）
-
-```bash
-# 安装依赖
-sudo pacman -S cmake qt6-base qt6-serialport qt6-tools
-
-# 配置和编译
-cmake -B build
 cmake --build build
 
 # 运行
@@ -173,11 +153,12 @@ cmake --build build
 ### Linux ARM（Raspberry Pi等）
 
 ```bash
-# 确保Qt6支持ARM架构
-# 在Raspberry Pi OS上可能需要从源码编译Qt6
+# 安装依赖
+sudo apt update
+sudo apt install cmake build-essential qt6-base-dev qt6-serialport-dev
 
 # 配置
-cmake -B build -DCMAKE_PREFIX_PATH=/usr/lib/qt6
+cmake -B build -DCMAKE_BUILD_TYPE=Release
 
 # 编译
 cmake --build build
@@ -196,10 +177,7 @@ QCOM/
 ├── mainwindow.ui           # UI布局文件
 ├── icons/                  # SVG图标
 │   ├── app_icon.svg        # 应用图标
-│   ├── serial.svg          # 串口图标
-│   ├── tcp_client.svg      # TCP客户端图标
-│   ├── tcp_server.svg      # TCP服务端图标
-│   ├── udp.svg             # UDP图标
+│   ├── dropdown.svg        # 下拉箭头图标
 │   └── ...                 # 其他图标
 ├── resources.qrc           # Qt资源文件
 └── README.md               # 说明文档
@@ -218,6 +196,13 @@ QCOM/
 MIT许可证 - 可自由使用、修改和分发。
 
 ## 更新日志
+
+### v2.0
+- 添加深色主题（暗蓝色风格）
+- 添加下拉箭头图标
+- GitHub Actions 自动编译
+- 支持 5 个平台预编译版本
+- macOS 最低支持版本 10.15
 
 ### v1.1
 - 添加应用图标
