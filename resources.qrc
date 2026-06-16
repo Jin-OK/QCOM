@@ -13,5 +13,6 @@
         <file>icons/font.svg</file>
         <file>icons/scan.svg</file>
         <file>icons/dropdown.svg</file>
+        <file>icons/checkbox_checked.svg</file>
     </qresource>
 </RCC>
