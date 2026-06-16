@@ -12,5 +12,6 @@
         <file>icons/save.svg</file>
         <file>icons/font.svg</file>
         <file>icons/scan.svg</file>
+        <file>icons/dropdown.svg</file>
     </qresource>
 </RCC>
