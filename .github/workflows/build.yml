@@ -108,10 +108,10 @@ jobs:
         run: |
           mkdir -p package
           cp build/QCOM package/
-          cp $QT_ROOT/lib/libQt6*.so* package/
-          cp $QT_ROOT/lib/libicu*.so* package/ 2>/dev/null || true
+          cp $QT_ROOT_DIR/lib/libQt6*.so* package/
+          cp $QT_ROOT_DIR/lib/libicu*.so* package/ 2>/dev/null || true
           mkdir -p package/platforms
-          cp $QT_ROOT/plugins/platforms/*.so package/platforms/
+          cp $QT_ROOT_DIR/plugins/platforms/*.so package/platforms/
           cd package
           tar -czvf ../QCOM-linux-x64.tar.gz .
           
@@ -137,16 +137,22 @@ jobs:
       - name: Build
         run: cmake --build build
         
-      - name: Package
+      - name: Package with Qt libs
         run: |
-          cd build
-          tar -czvf QCOM-linux-arm64.tar.gz QCOM
+          mkdir -p package
+          cp build/QCOM package/
+          cp /usr/lib/libQt6*.so* package/ 2>/dev/null || true
+          cp /usr/lib/libicu*.so* package/ 2>/dev/null || true
+          mkdir -p package/platforms
+          cp /usr/lib/qt6/plugins/platforms/*.so package/platforms/ 2>/dev/null || true
+          cd package
+          tar -czvf ../QCOM-linux-arm64.tar.gz .
           
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
           name: QCOM-linux-arm64
-          path: build/QCOM-linux-arm64.tar.gz
+          path: QCOM-linux-arm64.tar.gz
 
   release:
     needs: [build-windows, build-macos-arm64, build-linux-x64, build-linux-arm64]

@@ -125,7 +125,7 @@ void MainWindow::initUI()
         "} "
         "QRadioButton::indicator:checked { "
         "   border: 1px solid #3a4a5a; "
-        "   background-color: #3a4a5a; "
+        "   background-color: #ffffff; "
         "   border-radius: 6px; "
         "} "
         "QCheckBox { color: #ffffff; }"
