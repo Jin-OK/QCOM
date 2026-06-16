@@ -1,218 +1,236 @@
-# QCOM - Serial & Network Assistant
+# QCOM - 串口与网络调试助手
 
-A cross-platform serial port and network communication assistant built with Qt6.
+基于Qt6开发的跨平台串口与网络通信调试工具。
 
-## Features
+## 功能特性
 
-- **Serial Port Communication**
-  - Configurable baud rate (1200-921600)
-  - Data bits, stop bits, parity settings
-  - Flow control options
-  - Auto-scan available ports
+- **串口通信**
+  - 可配置波特率（1200-921600）
+  - 数据位、停止位、校验位设置
+  - 流控制选项
+  - 自动扫描可用端口
 
-- **Network Communication**
-  - TCP Client mode
-  - TCP Server mode
-  - UDP communication
-  - Configurable local and remote addresses
+- **网络通信**
+  - TCP 客户端模式
+  - TCP 服务端模式
+  - UDP 通信
+  - 可配置本地和远程地址
 
-- **Data Display**
-  - Timestamp support
-  - Hexadecimal display mode
-  - UTF-8 Chinese character support
-  - Color-coded send/receive labels (Send: yellow, Recv: green)
-  - Adjustable font settings
+- **数据显示**
+  - 时间戳支持
+  - 十六进制显示模式
+  - UTF-8 中文字符支持
+  - 发送/接收彩色标签（发送：黄色，接收：绿色）
+  - 可调节字体设置
 
-- **Additional Features**
-  - Auto-send with configurable interval
-  - Append newline option (CR+LF)
-  - Save received data to file
-  - Resizable receive/send areas
+- **其他功能**
+  - 定时自动发送
+  - 发送追加换行符（CR+LF）
+  - 保存接收数据到文件
+  - 可拖动调整接收/发送区域大小
 
-## Screenshots
+## 编译需求
 
-![QCOM Screenshot](docs/screenshot.png)
-
-## Build Requirements
-
-- Qt 6.x (Qt6.11.1 recommended)
+- Qt 6.x（推荐 Qt 6.11.1）
 - CMake 3.16+
-- C++17 compiler
+- C++17 编译器
 
-### Platform-specific Requirements
+### 各平台编译器要求
 
-| Platform | Compiler | Qt Version |
-|----------|----------|------------|
-| Windows  | MinGW 13.1.0 or MSVC 2022 | Qt 6.11.1 (MinGW/MSVC) |
-| macOS    | Clang (Xcode) | Qt 6.x |
-| Linux    | GCC 9+ or Clang | Qt 6.x |
+| 平台 | 编译器 | Qt版本 |
+|------|--------|--------|
+| Windows | MinGW 13.1.0 或 MSVC 2022 | Qt 6.11.1 |
+| macOS | Clang（Xcode） | Qt 6.x |
+| Linux | GCC 9+ 或 Clang | Qt 6.x |
 
-## Build Instructions
+## 编译指南
 
-### Windows (MinGW)
+### Windows（MinGW）
 
 ```bash
-# Set Qt path (adjust to your installation)
+# 设置Qt路径（根据你的安装路径调整）
 set PATH=D:\Qt\Tools\mingw1310_64\bin;D:\Qt\6.11.1\mingw_64\bin;%PATH%
 
-# Configure
+# 配置
 cmake -B build -G "MinGW Makefiles" -DCMAKE_PREFIX_PATH=D:/Qt/6.11.1/mingw_64
 
-# Build
+# 编译
 cmake --build build
 
-# Run
+# 运行
 build\QCOM.exe
 ```
 
-### Windows (MSVC)
+### Windows（MSVC）
 
 ```bash
-# Open "x64 Native Tools Command Prompt for VS 2022"
+# 打开 "x64 Native Tools Command Prompt for VS 2022"
 
-# Configure
+# 配置
 cmake -B build -G "Visual Studio 17 2022" -A x64 -DCMAKE_PREFIX_PATH=C:/Qt/6.11.1/msvc2022_64
 
-# Build
+# 编译
 cmake --build build --config Release
 
-# Run
+# 运行
 build\Release\QCOM.exe
 ```
 
 ### macOS
 
+#### 方式一：使用官方Qt安装包
+
+1. **下载安装Qt**
+   - 从 [Qt官网](https://www.qt.io/download) 下载Qt安装包
+   - 安装Qt 6.x（推荐6.11.1或更高版本）
+   - 安装路径通常为：`/Users/你的用户名/Qt/6.x/macos` 或 `/opt/qt6`
+
+2. **安装Xcode命令行工具**
+   ```bash
+   xcode-select --install
+   ```
+
+3. **编译**
+   ```bash
+   # 设置Qt路径（根据实际安装路径调整）
+   export CMAKE_PREFIX_PATH=/Users/你的用户名/Qt/6.11.1/macos
+   # 或者使用brew安装的Qt
+   # export CMAKE_PREFIX_PATH=/opt/homebrew/opt/qt@6
+
+   # 配置
+   cmake -B build -DCMAKE_PREFIX_PATH=$CMAKE_PREFIX_PATH
+
+   # 编译
+   cmake --build build
+
+   # 运行
+   ./build/QCOM.app/Contents/MacOS/QCOM
+   # 或者直接打开app包
+   open build/QCOM.app
+   ```
+
+#### 方式二：使用Homebrew
+
 ```bash
-# Install Qt via Homebrew or official installer
-# Assuming Qt is installed at /opt/qt6 or ~/Qt/6.x/macos
+# 安装Qt6
+brew install qt@6
 
-# Configure
-cmake -B build -DCMAKE_PREFIX_PATH=/path/to/qt6
+# 设置环境变量
+export CMAKE_PREFIX_PATH=/opt/homebrew/opt/qt@6
 
-# Build
+# 配置和编译
+cmake -B build -DCMAKE_PREFIX_PATH=/opt/homebrew/opt/qt@6
 cmake --build build
 
-# Run
-./build/QCOM.app/Contents/MacOS/QCOM
-# Or simply open the app bundle
+# 运行
 open build/QCOM.app
 ```
 
-### Linux (Ubuntu/Debian)
+#### 生成独立可执行的macOS应用包
 
 ```bash
-# Install dependencies
+# 编译Release版本
+cmake -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH=/path/to/qt
+cmake --build build --config Release
+
+# 使用macdeployqt打包依赖（Qt自带工具）
+/path/to/qt/bin/macdeployqt build/QCOM.app -dmg
+
+# 生成的QCOM.dmg可以直接分发给其他mac用户
+```
+
+### Linux（Ubuntu/Debian）
+
+```bash
+# 安装依赖
 sudo apt update
 sudo apt install cmake build-essential qt6-base-dev qt6-serialport-dev qt6-tools-dev
 
-# Configure
+# 配置
 cmake -B build
 
-# Build
+# 编译
 cmake --build build
 
-# Run
+# 运行
 ./build/QCOM
 ```
 
-### Linux (Arch Linux)
+### Linux（Arch Linux）
 
 ```bash
-# Install dependencies
+# 安装依赖
 sudo pacman -S cmake qt6-base qt6-serialport qt6-tools
 
-# Configure and build
+# 配置和编译
 cmake -B build
 cmake --build build
 
-# Run
+# 运行
 ./build/QCOM
 ```
 
-### Linux ARM (Raspberry Pi etc.)
+### Linux ARM（Raspberry Pi等）
 
 ```bash
-# Ensure Qt6 is available for ARM architecture
-# On Raspberry Pi OS, you may need to build Qt6 from source
+# 确保Qt6支持ARM架构
+# 在Raspberry Pi OS上可能需要从源码编译Qt6
 
-# Configure with ARM-specific settings
+# 配置
 cmake -B build -DCMAKE_PREFIX_PATH=/usr/lib/qt6
 
-# Build
+# 编译
 cmake --build build
 
-# Run
+# 运行
 ./build/QCOM
 ```
 
-## Application Icon
-
-For Windows executable icon, you need to create an `.ico` file:
-
-1. Convert `icons/app_icon.svg` to `.ico` format using tools like:
-   - ImageMagick: `convert app_icon.svg app_icon.ico`
-   - Online converters
-   - GIMP
-
-2. Add to CMakeLists.txt:
-```cmake
-if(WIN32)
-    set_target_properties(QCOM PROPERTIES WIN32_EXECUTABLE TRUE)
-    # Add Windows resource file for icon
-endif()
-```
-
-## Project Structure
+## 项目结构
 
 ```
 QCOM/
-├── CMakeLists.txt          # Build configuration
-├── main.cpp                # Application entry point
-├── mainwindow.h/cpp        # Main window implementation
-├── mainwindow.ui           # UI layout (Qt Designer)
-├── icons/                  # SVG icons
-│   ├── app_icon.svg        # Application icon
-│   ├── serial.svg          # Serial port icon
-│   ├── tcp_client.svg      # TCP client icon
-│   ├── tcp_server.svg      # TCP server icon
-│   ├── udp.svg             # UDP icon
-│   └── ...                 # Other icons
-├── resources.qrc           # Qt resource file
-└── README.md               # Documentation
+├── CMakeLists.txt          # 编译配置
+├── main.cpp                # 应用程序入口
+├── mainwindow.h/cpp        # 主窗口实现
+├── mainwindow.ui           # UI布局文件
+├── icons/                  # SVG图标
+│   ├── app_icon.svg        # 应用图标
+│   ├── serial.svg          # 串口图标
+│   ├── tcp_client.svg      # TCP客户端图标
+│   ├── tcp_server.svg      # TCP服务端图标
+│   ├── udp.svg             # UDP图标
+│   └── ...                 # 其他图标
+├── resources.qrc           # Qt资源文件
+└── README.md               # 说明文档
 ```
 
-## Usage
+## 使用说明
 
-1. Select connection type (Serial/TCP/UDP)
-2. Configure connection parameters
-3. Click "Open"/"Connect"/"Bind" to establish connection
-4. Type data in Send area and click "Send"
-5. Received data appears in Receive area
+1. 选择连接类型（串口/TCP/UDP）
+2. 配置连接参数
+3. 点击"打开"/"连接"/"绑定"建立连接
+4. 在发送区输入数据，点击"发送"
+5. 接收的数据显示在接收区
 
-## License
+## 许可证
 
-MIT License - Feel free to use, modify, and distribute.
+MIT许可证 - 可自由使用、修改和分发。
 
-## Contributing
+## 更新日志
 
-Contributions welcome! Please submit pull requests or open issues for:
-- Bug fixes
-- Feature enhancements
-- Platform-specific improvements
-- Documentation improvements
+### v1.1
+- 添加应用图标
+- 完善README文档
+- 优化接收/发送区初始比例
+- 各平台编译指南
 
-## Author
-
-QCOM Project
-
-## Changelog
-
-### v1.0.0
-- Initial release
-- Serial port communication
-- TCP Client/Server modes
-- UDP support
-- Timestamp display
-- Hex mode
-- UTF-8 Chinese character support
-- Resizable UI panels
+### v1.0
+- 初始版本发布
+- 串口通信功能
+- TCP 客户端/服务端模式
+- UDP 支持
+- 时间戳显示
+- 十六进制模式
+- UTF-8 中文字符支持
+- 可拖动调整UI面板
