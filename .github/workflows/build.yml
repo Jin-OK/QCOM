@@ -89,27 +89,41 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       
-      - name: Install Qt6
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y qt6-base-dev qt6-base-dev-tools qt6-serialport-dev cmake build-essential
+      - name: Install Qt
+        uses: jurplel/install-qt-action@v4
+        with:
+          version: '6.5.3'
+          host: 'linux'
+          target: 'desktop'
+          arch: 'gcc_64'
+          modules: 'qtserialport'
           
       - name: Configure
-        run: cmake -B build -DCMAKE_BUILD_TYPE=Release
+        run: cmake -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH="${{ env.Qt6_DIR }}"
         
       - name: Build
         run: cmake --build build
         
-      - name: Package
+      - name: Download linuxdeploy
         run: |
-          cd build
-          tar -czvf QCOM-linux-x64.tar.gz QCOM
+          wget -q https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-x86_64.AppImage
+          wget -q https://github.com/linuxdeploy/linuxdeploy-plugin-qt/releases/download/continuous/linuxdeploy-plugin-qt-x86_64.AppImage
+          chmod +x linuxdeploy*.AppImage
+          
+      - name: Create AppImage
+        run: |
+          mkdir -p AppDir
+          cp build/QCOM AppDir/
+          export QMAKE=${{ env.Qt6_DIR }}/bin/qmake
+          export LD_LIBRARY_PATH=${{ env.Qt6_DIR }}/lib:$LD_LIBRARY_PATH
+          ./linuxdeploy-x86_64.AppImage --appdir AppDir --executable build/QCOM --plugin qt --output appimage
+          mv QCOM-*-x86_64.AppImage QCOM-linux-x64.AppImage
           
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
           name: QCOM-linux-x64
-          path: build/QCOM-linux-x64.tar.gz
+          path: QCOM-linux-x64.AppImage
 
   build-linux-arm64:
     runs-on: ubuntu-24.04-arm
@@ -154,7 +168,7 @@ jobs:
           files: |
             artifacts/QCOM-windows-x64/QCOM-windows-x64.zip
             artifacts/QCOM-macos-arm64/QCOM-macos-arm64.dmg
-            artifacts/QCOM-linux-x64/QCOM-linux-x64.tar.gz
+            artifacts/QCOM-linux-x64/QCOM-linux-x64.AppImage
             artifacts/QCOM-linux-arm64/QCOM-linux-arm64.tar.gz
           body: |
             ## QCOM v${{ github.ref_name }}
@@ -165,8 +179,8 @@ jobs:
             |------|------|------|
             | Windows x64 | QCOM-windows-x64.zip | Windows 64位，解压后运行 QCOM.exe |
             | macOS ARM64 | QCOM-macos-arm64.dmg | M1/M2/M3芯片 Mac |
-            | Linux x64 | QCOM-linux-x64.tar.gz | Linux 64位 |
-            | Linux ARM64 | QCOM-linux-arm64.tar.gz | 树莓派等ARM设备 |
+            | Linux x64 | QCOM-linux-x64.AppImage | Linux 64位，直接运行 |
+            | Linux ARM64 | QCOM-linux-arm64.tar.gz | 树莓派等ARM设备，需安装Qt6 |
             
             ### 使用方法
             
@@ -177,4 +191,6 @@ jobs:
             sudo xattr -cr /Applications/QCOM.app
             ```
             
-            **Linux**: 解压后运行 `./QCOM`
+            **Linux x64**: 运行 AppImage 文件：`chmod +x QCOM-linux-x64.AppImage && ./QCOM-linux-x64.AppImage`
+            
+            **Linux ARM64**: 解压后需先安装Qt6：`sudo apt install qt6-base-dev qt6-serialport-dev`，然后运行 `./QCOM`
