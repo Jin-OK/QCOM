@@ -112,7 +112,8 @@ jobs:
           cp ${{ env.Qt6_DIR }}/lib/libicu*.so* package/ 2>/dev/null || true
           mkdir -p package/platforms
           cp ${{ env.Qt6_DIR }}/plugins/platforms/*.so package/platforms/
-          tar -czvf QCOM-linux-x64.tar.gz -C package .
+          cd package
+          tar -czvf ../QCOM-linux-x64.tar.gz .
           
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
