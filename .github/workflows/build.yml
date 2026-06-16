@@ -108,10 +108,10 @@ jobs:
         run: |
           mkdir -p package
           cp build/QCOM package/
-          cp ${{ env.Qt6_DIR }}/lib/libQt6*.so* package/
-          cp ${{ env.Qt6_DIR }}/lib/libicu*.so* package/ 2>/dev/null || true
+          cp $QT_ROOT/lib/libQt6*.so* package/
+          cp $QT_ROOT/lib/libicu*.so* package/ 2>/dev/null || true
           mkdir -p package/platforms
-          cp ${{ env.Qt6_DIR }}/plugins/platforms/*.so package/platforms/
+          cp $QT_ROOT/plugins/platforms/*.so package/platforms/
           cd package
           tar -czvf ../QCOM-linux-x64.tar.gz .
           
