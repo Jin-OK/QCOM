@@ -86,40 +86,6 @@ jobs:
           name: QCOM-macos-arm64
           path: build/QCOM-macos-arm64.dmg
 
-  build-macos-x64:
-    runs-on: macos-13
-    steps:
-      - uses: actions/checkout@v4
-      
-      - name: Install Qt
-        uses: jurplel/install-qt-action@v4
-        with:
-          version: '6.5.3'
-          host: 'mac'
-          target: 'desktop'
-          arch: 'clang_64'
-          modules: 'qtserialport'
-          
-      - name: Configure
-        run: cmake -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH="${{ env.Qt6_DIR }}"
-        
-      - name: Build
-        run: cmake --build build
-        
-      - name: Create DMG
-        run: |
-          cd build
-          mkdir -p dmg_temp
-          cp -r QCOM.app dmg_temp/
-          ln -sf /Applications dmg_temp/Applications
-          hdiutil create -volname "QCOM" -srcfolder dmg_temp -ov -format UDZO QCOM-macos-x64.dmg
-          
-      - name: Upload Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: QCOM-macos-x64
-          path: build/QCOM-macos-x64.dmg
-
   build-linux-x64:
     runs-on: ubuntu-latest
     steps:
@@ -175,7 +141,7 @@ jobs:
           path: build/QCOM-linux-arm64.tar.gz
 
   release:
-    needs: [build-windows, build-macos-arm64, build-macos-x64, build-linux-x64, build-linux-arm64]
+    needs: [build-windows, build-macos-arm64, build-linux-x64, build-linux-arm64]
     runs-on: ubuntu-latest
     if: startsWith(github.ref, 'refs/tags/')
     steps:
@@ -190,7 +156,6 @@ jobs:
           files: |
             artifacts/QCOM-windows-x64/QCOM-windows-x64.zip
             artifacts/QCOM-macos-arm64/QCOM-macos-arm64.dmg
-            artifacts/QCOM-macos-x64/QCOM-macos-x64.dmg
             artifacts/QCOM-linux-x64/QCOM-linux-x64.tar.gz
             artifacts/QCOM-linux-arm64/QCOM-linux-arm64.tar.gz
           body: |
@@ -201,8 +166,7 @@ jobs:
             | 平台 | 文件 | 说明 |
             |------|------|------|
             | Windows x64 | QCOM-windows-x64.zip | Windows 64位，解压后运行 QCOM.exe |
-            | macOS ARM64 | QCOM-macos-arm64.dmg | M1/M2/M3芯片 |
-            | macOS x64 | QCOM-macos-x64.dmg | Intel芯片Mac |
+            | macOS ARM64 | QCOM-macos-arm64.dmg | M1/M2/M3芯片 Mac |
             | Linux x64 | QCOM-linux-x64.tar.gz | Linux 64位 |
             | Linux ARM64 | QCOM-linux-arm64.tar.gz | 树莓派等ARM设备 |
             

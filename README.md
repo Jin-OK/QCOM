@@ -12,7 +12,6 @@
 |------|------|------|
 | Windows x64 | QCOM-windows-x64.zip | Windows 64位，解压后运行 QCOM.exe |
 | macOS ARM64 | QCOM-macos-arm64.dmg | M1/M2/M3芯片 Mac |
-| macOS x64 | QCOM-macos-x64.dmg | Intel芯片 Mac |
 | Linux x64 | QCOM-linux-x64.tar.gz | Linux 64位 |
 | Linux ARM64 | QCOM-linux-arm64.tar.gz | 树莓派等ARM设备 |
 
