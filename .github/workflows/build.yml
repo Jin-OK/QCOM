@@ -16,13 +16,11 @@ jobs:
       - name: Install Qt
         uses: jurplel/install-qt-action@v4
         with:
-          version: '6.6.3'
+          version: '6.5.3'
           host: 'windows'
           target: 'desktop'
-          arch: 'mingw_64'
-          
-      - name: Install Qt SerialPort
-        run: aqt install-qt windows desktop 6.6.3 mingw_64 --outputdir ${{ env.Qt6_DIR }}\.. -m qtserialport
+          arch: 'win64_mingw'
+          modules: 'qtserialport'
           
       - name: Configure
         run: cmake -B build -G "MinGW Makefiles" -DCMAKE_PREFIX_PATH="${{ env.Qt6_DIR }}"
@@ -57,13 +55,11 @@ jobs:
       - name: Install Qt
         uses: jurplel/install-qt-action@v4
         with:
-          version: '6.6.3'
+          version: '6.5.3'
           host: 'mac'
           target: 'desktop'
           arch: 'clang_64'
-          
-      - name: Install Qt SerialPort
-        run: aqt install-qt mac desktop 6.6.3 clang_64 --outputdir ${{ env.Qt6_DIR }}/.. -m qtserialport
+          modules: 'qtserialport'
           
       - name: Configure
         run: cmake -B build -DCMAKE_PREFIX_PATH="${{ env.Qt6_DIR }}" -DCMAKE_OSX_ARCHITECTURES="arm64"
@@ -91,13 +87,11 @@ jobs:
       - name: Install Qt
         uses: jurplel/install-qt-action@v4
         with:
-          version: '6.6.3'
+          version: '6.5.3'
           host: 'mac'
           target: 'desktop'
           arch: 'clang_64'
-          
-      - name: Install Qt SerialPort
-        run: aqt install-qt mac desktop 6.6.3 clang_64 --outputdir ${{ env.Qt6_DIR }}/.. -m qtserialport
+          modules: 'qtserialport'
           
       - name: Configure
         run: cmake -B build -DCMAKE_PREFIX_PATH="${{ env.Qt6_DIR }}"
