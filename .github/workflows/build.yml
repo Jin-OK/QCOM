@@ -2,13 +2,12 @@ name: Build QCOM
 
 on:
   push:
+    branches: [ main, master ]
     tags:
       - 'v*'
+  pull_request:
+    branches: [ main, master ]
   workflow_dispatch:
-    inputs:
-      version:
-        description: 'Version to build'
-        required: false
 
 jobs:
   build-windows:
