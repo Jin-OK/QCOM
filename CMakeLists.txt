@@ -8,7 +8,7 @@ if(MSVC)
     add_compile_options(/Zc:__cplusplus)
 endif()
 
-find_package(Qt6 6.5 REQUIRED COMPONENTS Core Widgets SerialPort Network LinguistTools)
+find_package(Qt6 6.4 REQUIRED COMPONENTS Core Widgets SerialPort Network LinguistTools)
 
 qt_standard_project_setup()
 
