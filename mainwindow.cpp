@@ -39,22 +39,45 @@ MainWindow::MainWindow(QWidget *parent)
     , m_isTcpClientConnected(false)
     , m_isTcpServerListening(false)
     , m_isUdpBound(false)
+    , m_darkTitleBarSet(false)
 {
     ui->setupUi(this);
     initUI();
     initConnections();
     loadSettings();
     scanSerialPorts();
+}
 
-    // Windows 深色标题栏
-#ifdef Q_OS_WIN
-    const bool darkMode = true;
-    DwmSetWindowAttribute(
-        (HWND)this->winId(),
-        DWMWA_USE_IMMERSIVE_DARK_MODE,
-        &darkMode,
-        sizeof(darkMode)
-    );
+void MainWindow::showEvent(QShowEvent *event)
+{
+    QMainWindow::showEvent(event);
+
+    // Windows 深色标题栏 - 在窗口首次显示时设置
+#if defined(Q_OS_WIN)
+    if (!m_darkTitleBarSet) {
+        m_darkTitleBarSet = true;
+
+        // 尝试两个常量值以兼容不同 Windows 10 版本
+        // Windows 10 1809: DWMWA_USE_IMMERSIVE_DARK_MODE = 19
+        // Windows 10 1903+: DWMWA_USE_IMMERSIVE_DARK_MODE = 20
+        const BOOL darkMode = TRUE;
+        HRESULT hr = DwmSetWindowAttribute(
+            (HWND)this->winId(),
+            DWMWA_USE_IMMERSIVE_DARK_MODE,
+            &darkMode,
+            sizeof(darkMode)
+        );
+
+        // 如果失败，尝试旧版本的常量值
+        if (FAILED(hr)) {
+            DwmSetWindowAttribute(
+                (HWND)this->winId(),
+                19,  // DWMWA_USE_IMMERSIVE_DARK_MODE for Windows 10 1809
+                &darkMode,
+                sizeof(darkMode)
+            );
+        }
+    }
 #endif
 }
 

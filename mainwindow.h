@@ -22,6 +22,9 @@ public:
     explicit MainWindow(QWidget *parent = nullptr);
     ~MainWindow() override;
 
+protected:
+    void showEvent(QShowEvent *event) override;
+
 private slots:
     void on_btnScanSerial_clicked();
     void on_btnSend_clicked();
@@ -80,6 +83,7 @@ private:
     bool m_isTcpClientConnected;
     bool m_isTcpServerListening;
     bool m_isUdpBound;
+    bool m_darkTitleBarSet;
     
     void initUI();
     void initConnections();
