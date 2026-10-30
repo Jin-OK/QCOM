@@ -36,8 +36,8 @@ jobs:
           cd build
           windeployqt --release --no-translations QCOM.exe
           # 手动复制 SVG 图像格式插件（windeployqt 默认不复制）
-          mkdir imageformats 2>nul || echo Creating imageformats dir
-          copy /Y "%QT_ROOT_DIR%\plugins\imageformats\qsvg.dll" imageformats\ 2>nul || echo SVG plugin not found
+          if (-Not (Test-Path "imageformats")) { New-Item -ItemType Directory -Path "imageformats" }
+          Copy-Item "$env:QT_ROOT_DIR\plugins\imageformats\qsvg.dll" -Destination "imageformats\" -Force -ErrorAction SilentlyContinue
 
       - name: Package
         run: |
