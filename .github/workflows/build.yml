@@ -53,10 +53,10 @@ jobs:
           path: package/QCOM-windows-x64.zip
 
   build-macos-arm64:
-    runs-on: macos-latest
+    runs-on: macos-14
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Install Qt
         uses: jurplel/install-qt-action@v4
         with:
@@ -65,19 +65,19 @@ jobs:
           target: 'desktop'
           arch: 'clang_64'
           modules: 'qtserialport'
-          
+
       - name: Configure
-        run: cmake -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH="${{ env.Qt6_DIR }}" -DCMAKE_OSX_ARCHITECTURES="arm64"
-        
+        run: cmake -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH="${{ env.Qt6_DIR }}"
+
       - name: Build
         run: cmake --build build
-        
+
       - name: Create DMG
         run: |
           cd build
           macdeployqt QCOM.app -dmg
           mv QCOM.dmg QCOM-macos-arm64.dmg
-          
+
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
