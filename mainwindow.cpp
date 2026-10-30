@@ -24,10 +24,6 @@
 #endif
 #endif
 
-#ifdef Q_OS_MACOS
-#include <Cocoa/Cocoa.h>
-#endif
-
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
@@ -59,16 +55,6 @@ MainWindow::MainWindow(QWidget *parent)
         &darkMode,
         sizeof(darkMode)
     );
-#endif
-
-    // macOS 深色标题栏
-#ifdef Q_OS_MACOS
-    NSView *view = reinterpret_cast<NSView*>(this->winId());
-    NSWindow *window = [view window];
-    if (window) {
-        window.titlebarAppearsTransparent = YES;
-        window.appearance = [NSAppearance appearanceNamed:NSAppearanceNameDarkAqua];
-    }
 #endif
 }
 

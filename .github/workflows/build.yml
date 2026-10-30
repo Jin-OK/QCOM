@@ -34,11 +34,7 @@ jobs:
       - name: Deploy
         run: |
           cd build
-          windeployqt --release --no-translations --compiler-runtime ^
-            --imageformats svg ^
-            --platforms windows ^
-            --styles windowsvista ^
-            QCOM.exe
+          windeployqt --release --no-translations --compiler-runtime --imageformats svg --platforms windows --styles windowsvista QCOM.exe
 
       - name: Package
         run: |

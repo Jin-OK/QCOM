@@ -41,9 +41,4 @@ target_link_libraries(QCOM
 
 if(WIN32)
     target_link_libraries(QCOM PRIVATE dwmapi)
-elseif(APPLE)
-    find_library(COCOA_LIBRARY Cocoa)
-    if(COCOA_LIBRARY)
-        target_link_libraries(QCOM PRIVATE ${COCOA_LIBRARY})
-    endif()
 endif()
