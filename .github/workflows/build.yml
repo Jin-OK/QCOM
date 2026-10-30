@@ -7,6 +7,9 @@ on:
       - 'v*'
   workflow_dispatch:
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 jobs:
   build-windows:
     runs-on: windows-2022
@@ -204,9 +207,9 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           path: artifacts
-          
+
       - name: Create Release
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         with:
           files: |
             artifacts/QCOM-windows-x64/QCOM-windows-x64.zip
@@ -215,23 +218,23 @@ jobs:
             artifacts/QCOM-linux-arm64/QCOM-linux-arm64.tar.gz
           body: |
             ## QCOM v${{ github.ref_name }}
-            
+
             ### 下载说明
-            
+
             | 平台 | 文件 | 说明 |
             |------|------|------|
             | Windows x64 | QCOM-windows-x64.zip | Windows 64位，解压后运行 QCOM.exe |
             | macOS ARM64 | QCOM-macos-arm64.dmg | M1/M2/M3芯片 Mac |
             | Linux x64 | QCOM-linux-x64.tar.gz | Linux 64位，解压后运行 |
             | Linux ARM64 | QCOM-linux-arm64.tar.gz | 树莓派等ARM设备 |
-            
+
             ### 使用方法
-            
+
             **Windows**: 解压后运行 QCOM.exe
-            
+
             **macOS**: 双击 dmg 安装，首次运行如提示"已损坏"，请在终端执行：
             ```bash
             sudo xattr -cr /Applications/QCOM.app
             ```
-            
+
             **Linux**: 解压后运行 `./QCOM`

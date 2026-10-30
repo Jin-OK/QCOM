@@ -7,6 +7,7 @@
 #include <QFileDialog>
 #include <QDateTime>
 #include <QTimer>
+#include <QThread>
 #include <QFontDialog>
 #include <QFile>
 #include <QTextStream>
@@ -124,8 +125,8 @@ void MainWindow::initUI()
         "   border-radius: 6px; "
         "} "
         "QRadioButton::indicator:checked { "
-        "   border: 1px solid #3a4a5a; "
-        "   background-color: #ffffff; "
+        "   border: 1px solid #ff6b6b; "
+        "   background-color: #ff6b6b; "
         "   border-radius: 6px; "
         "} "
         "QCheckBox { color: #ffffff; }"
@@ -212,7 +213,7 @@ void MainWindow::initUI()
     ui->cbFlowControl->addItems(flowControl);
     
     ui->rbSerial->setChecked(true);
-    
+
     QFont monoFont("Consolas", 10);
     monoFont.setStyleHint(QFont::Monospace);
     ui->teRecv->setFont(monoFont);
@@ -376,6 +377,16 @@ void MainWindow::openSerialPort()
     m_serialPort->setFlowControl(flowControl);
     
     if (m_serialPort->open(QIODevice::ReadWrite)) {
+        // 关键：立即设置DTR和RTS为LOW，防止STM32自动下载电路误触发进入bootloader
+        m_serialPort->setDataTerminalReady(false);
+        m_serialPort->setRequestToSend(false);
+
+        // 短暂延时后再设置一次，确保信号稳定
+        // 某些USB转串口芯片（如CH340）可能需要一点时间响应
+        QThread::msleep(10);
+        m_serialPort->setDataTerminalReady(false);
+        m_serialPort->setRequestToSend(false);
+
         m_isSerialOpen = true;
         ui->btnConnect->setText(tr("Close"));
         ui->btnConnect->setIcon(QIcon(":/icons/disconnect.svg"));

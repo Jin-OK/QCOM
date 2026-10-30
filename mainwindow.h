@@ -38,7 +38,7 @@ private slots:
     void on_chkHexSend_toggled(bool checked);
     void on_chkTimestamp_toggled(bool checked);
     void on_chkAutoSend_toggled(bool checked);
-    
+
     void on_btnFont_clicked();
     void on_btnSave_clicked();
     
