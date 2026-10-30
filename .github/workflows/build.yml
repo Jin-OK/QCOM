@@ -53,7 +53,7 @@ jobs:
           path: package/QCOM-windows-x64.zip
 
   build-macos-arm64:
-    runs-on: macos-14
+    runs-on: macos-15
     steps:
       - uses: actions/checkout@v4
 
