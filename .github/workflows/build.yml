@@ -34,8 +34,12 @@ jobs:
       - name: Deploy
         run: |
           cd build
-          windeployqt --release --no-translations QCOM.exe
-          
+          windeployqt --release --no-translations --compiler-runtime ^
+            --imageformats svg ^
+            --platforms windows ^
+            --styles windowsvista ^
+            QCOM.exe
+
       - name: Package
         run: |
           mkdir package
@@ -43,6 +47,9 @@ jobs:
           xcopy build\*.dll package\ /Y
           xcopy build\platforms package\platforms\ /Y /I
           xcopy build\styles package\styles\ /Y /I 2>nul || echo No styles
+          xcopy build\imageformats package\imageformats\ /Y /I 2>nul || echo No imageformats
+          xcopy build\platformthemes package\platformthemes\ /Y /I 2>nul || echo No platformthemes
+          xcopy build\tls package\tls\ /Y /I 2>nul || echo No tls
           cd package
           7z a QCOM-windows-x64.zip *
           

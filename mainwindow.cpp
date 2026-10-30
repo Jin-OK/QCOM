@@ -13,6 +13,21 @@
 #include <QTextStream>
 #include <QScrollBar>
 
+#ifdef Q_OS_WIN
+#include <windows.h>
+#include <dwmapi.h>
+#pragma comment(lib, "dwmapi.lib")
+
+// 某些 Windows SDK 版本未定义此常量，手动定义
+#ifndef DWMWA_USE_IMMERSIVE_DARK_MODE
+#define DWMWA_USE_IMMERSIVE_DARK_MODE 20
+#endif
+#endif
+
+#ifdef Q_OS_MACOS
+#include <Cocoa/Cocoa.h>
+#endif
+
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
@@ -34,6 +49,27 @@ MainWindow::MainWindow(QWidget *parent)
     initConnections();
     loadSettings();
     scanSerialPorts();
+
+    // Windows 深色标题栏
+#ifdef Q_OS_WIN
+    const bool darkMode = true;
+    DwmSetWindowAttribute(
+        (HWND)this->winId(),
+        DWMWA_USE_IMMERSIVE_DARK_MODE,
+        &darkMode,
+        sizeof(darkMode)
+    );
+#endif
+
+    // macOS 深色标题栏
+#ifdef Q_OS_MACOS
+    NSView *view = reinterpret_cast<NSView*>(this->winId());
+    NSWindow *window = [view window];
+    if (window) {
+        window.titlebarAppearsTransparent = YES;
+        window.appearance = [NSAppearance appearanceNamed:NSAppearanceNameDarkAqua];
+    }
+#endif
 }
 
 MainWindow::~MainWindow()
