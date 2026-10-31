@@ -7,7 +7,6 @@
 #include <QFileDialog>
 #include <QDateTime>
 #include <QTimer>
-#include <QThread>
 #include <QFontDialog>
 #include <QFile>
 #include <QTextStream>
@@ -22,6 +21,15 @@
 #ifndef DWMWA_USE_IMMERSIVE_DARK_MODE
 #define DWMWA_USE_IMMERSIVE_DARK_MODE 20
 #endif
+#endif
+
+#if defined(Q_OS_MACOS) || defined(Q_OS_LINUX)
+#include <sys/ioctl.h>
+#include <termios.h>
+#endif
+
+#ifdef Q_OS_MACOS
+#include <IOKit/serial/ioss.h>
 #endif
 
 MainWindow::MainWindow(QWidget *parent)
@@ -420,17 +428,12 @@ void MainWindow::openSerialPort()
     if (flowControlIndex == 1) flowControl = QSerialPort::HardwareControl;
     else if (flowControlIndex == 2) flowControl = QSerialPort::SoftwareControl;
     m_serialPort->setFlowControl(flowControl);
-    
-    if (m_serialPort->open(QIODevice::ReadWrite)) {
-        // 关键：立即设置DTR和RTS为LOW，防止STM32自动下载电路误触发进入bootloader
-        m_serialPort->setDataTerminalReady(false);
-        m_serialPort->setRequestToSend(false);
 
-        // 短暂延时后再设置一次，确保信号稳定
-        // 某些USB转串口芯片（如CH340）可能需要一点时间响应
-        QThread::msleep(10);
-        m_serialPort->setDataTerminalReady(false);
-        m_serialPort->setRequestToSend(false);
+    if (m_serialPort->open(QIODevice::ReadWrite)) {
+        // 关键：先设置RTS(BOOT0)为LOW，确保正常启动模式
+        // 然后设置DTR，避免产生错误的复位脉冲
+        m_serialPort->setRequestToSend(false);   // RTS(BOOT0) = LOW → 正常启动
+        m_serialPort->setDataTerminalReady(true); // DTR = HIGH → 稳定状态
 
         m_isSerialOpen = true;
         ui->btnConnect->setText(tr("Close"));
@@ -451,6 +454,12 @@ void MainWindow::openSerialPort()
 
 void MainWindow::closeSerialPort()
 {
+    // 关闭时：先设置RTS(BOOT0)为LOW，再设置DTR
+    if (m_isSerialOpen) {
+        m_serialPort->setRequestToSend(false);   // RTS(BOOT0) = LOW
+        m_serialPort->setDataTerminalReady(true); // DTR = HIGH
+    }
+
     m_serialPort->close();
     m_isSerialOpen = false;
     m_recvBuffer.clear();
