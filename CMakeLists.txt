@@ -27,8 +27,19 @@ add_executable(QCOM
 
 if(WIN32)
     set_target_properties(QCOM PROPERTIES WIN32_EXECUTABLE TRUE)
+    # Windows ICO图标 (仅MSVC，因为需要动态生成ICO)
+    if(MSVC)
+        target_sources(QCOM PRIVATE resources.rc)
+    endif()
 elseif(APPLE)
     set_target_properties(QCOM PROPERTIES MACOSX_BUNDLE TRUE)
+    # macOS ICNS图标
+    set(MACOSX_ICON ${CMAKE_CURRENT_SOURCE_DIR}/icons/app_icon.icns)
+    if(EXISTS ${MACOSX_ICON})
+        set_source_files_properties(${MACOSX_ICON} PROPERTIES MACOSX_PACKAGE_LOCATION "Resources")
+        target_sources(QCOM PRIVATE ${MACOSX_ICON})
+        set_target_properties(QCOM PROPERTIES MACOSX_BUNDLE_ICON_FILE "app_icon.icns")
+    endif()
 endif()
 
 target_link_libraries(QCOM
